@@ -8,7 +8,10 @@ from..utils import clean_string
 class Det_Mir_Spider(scrapy.Spider):
     name = "det_mir"
     start_urls = ['https://www.detmir.ru/']
-    required_regions = ['Москва', 'Санкт-Петербург']
+    required_regions = [
+                        'Москва',
+                        'Санкт-Петербург'
+                        ]
     custom_settings = {"LOG_LEVEL": "DEBUG"}
 
     def parse(self, response, **kwargs):
@@ -20,7 +23,7 @@ class Det_Mir_Spider(scrapy.Spider):
                 region_ids.append({'city': region_item['city'], 'iso': region_item['iso']})
         for region in region_ids:
             yield scrapy.Request(
-                f'https://api.detmir.ru/v2/products?filter=categories[].alias:konstruktory;promo:false;withregion:{region}&limit=100&offset=0&sort=popularity:desc',
+                f'https://api.detmir.ru/v2/products?filter=categories[].alias:konstruktory;promo:false;withregion:{region["iso"]}&limit=100&offset=0&sort=popularity:desc',
                 callback=self.parse_data,
                 cb_kwargs={'current_offset': 0, 'region': region}
             )
@@ -42,7 +45,7 @@ class Det_Mir_Spider(scrapy.Spider):
                         price = current_price
                     item = {
                         "id": id,
-                        "title": title,
+                        "title": title.replace(id, '').strip(),
                         'price': price,
                         'city': kwargs["region"]["city"],
                         'promo_price': promo_price,
