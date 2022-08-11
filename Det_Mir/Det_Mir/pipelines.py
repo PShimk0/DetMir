@@ -1,8 +1,13 @@
+import csv
+
 from scrapy import signals
 from scrapy.exporters import CsvItemExporter
 
 
 class DetMirCSVPipeline(object):
+
+    items = []
+
     @classmethod
     def from_crawler(cls, crawler):
         pipeline = cls()
@@ -11,14 +16,14 @@ class DetMirCSVPipeline(object):
         return pipeline
 
     def spider_opened(self, spider):
-        self.file = open('det_mir_data.csv', 'w+b')
-        self.exporter = CsvItemExporter(self.file)
-        self.exporter.start_exporting()
+        self.file = open('det_mir_data.csv', 'w', encoding = 'utf-8-sig', newline='')
 
     def spider_closed(self, spider):
-        self.exporter.finish_exporting()
+        writer = csv.DictWriter(self.file, fieldnames=self.items[0].keys())
+        writer.writeheader()
+        writer.writerows(self.items)
         self.file.close()
 
     def process_item(self, item, spider):
-        self.exporter.export_item(item)
+        self.items.append(item)
         return item
